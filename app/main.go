@@ -5,11 +5,11 @@ import (
 	"net"
 	"os"
 
-	dnsgo "github.com/rivao-e/resolego"
+	lib "github.com/rivao-e/resolego/lib"
 )
 
 func dnsServer() {
-	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:2053")
+	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:6969")
 	if err != nil {
 		log.Println("Failed to resolve UDP address:", err)
 		return
@@ -39,10 +39,10 @@ func dnsServer() {
 
 		response := []byte{}
 
-		if receivedHeader, receivedQuestions, _, err := dns.ParseDNSMessage(message); err != nil {
+		if receivedHeader, receivedQuestions, _, err := lib.ParseDNSMessage(message); err != nil {
 			log.Fatal(err)
 		} else {
-			headerFlags := dns.DecodeDNSFlags(receivedHeader.Flags)
+			headerFlags := lib.DecodeDNSFlags(receivedHeader.Flags)
 			headerFlags.QR = 1
 			headerFlags.AA = 0
 			headerFlags.TC = 0
@@ -53,8 +53,8 @@ func dnsServer() {
 			// receivedHeader.QDCount = 1
 			receivedHeader.ANCount = receivedHeader.QDCount
 			// receivedHeader.ID = 1234
-			receivedHeader.Flags = dns.EncodeDNSFlags(headerFlags)
-			answers := []dns.DNSRecord{}
+			receivedHeader.Flags = lib.EncodeDNSFlags(headerFlags)
+			answers := []lib.DNSRecord{}
 
 			for i, question := range receivedQuestions {
 
@@ -66,7 +66,7 @@ func dnsServer() {
 					log.Println("Command line args", arg)
 				}
 
-				ips, err := dns.Forwad(question.QName, os.Args[2])
+				ips, err := lib.Forwad(question.QName, os.Args[2])
 
 				// if err != nil {
 				//
@@ -80,7 +80,7 @@ func dnsServer() {
 				}
 				log.Println("Logged it before filtering")
 
-				ips = dns.FilterIpV4(ips)
+				ips = lib.FilterIpV4(ips)
 
 				for _, ip := range ips {
 					log.Println(ip)
@@ -89,14 +89,14 @@ func dnsServer() {
 
 				data := []byte{}
 				if len(ips) != 0 {
-					data, err = dns.IPAddressStringToBytes(ips[0])
+					data, err = lib.IPAddressStringToBytes(ips[0])
 					if err != nil {
 						log.Println("This is the ip: ", ips[0])
 						log.Fatal("Error trying to convert ip to bytes: ", err, ips[0])
 					}
 				}
 
-				record := dns.DNSRecord{
+				record := lib.DNSRecord{
 					Name:     question.QName,
 					Type:     receivedQuestions[i].QType, // A record
 					Class:    receivedQuestions[i].QType, // IN
@@ -109,7 +109,7 @@ func dnsServer() {
 			}
 
 			// log.Fatal(len(answers))
-			response = dns.EncodeDNSMessage(receivedHeader, receivedQuestions, answers)
+			response = lib.EncodeDNSMessage(receivedHeader, receivedQuestions, answers)
 			// dns.PrintMessage(response)
 		}
 

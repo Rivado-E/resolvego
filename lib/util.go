@@ -35,14 +35,14 @@ type DNSRecord struct {
 }
 
 type DNSFlags struct {
-	QR     uint16 // Query (0) / Response (1)
-	Opcode uint16 // 4-bit opcode
-	AA     uint16 // Authoritative Answer flag
-	TC     uint16 // Truncation flag
-	RD     uint16 // Recursion Desired flag
-	RA     uint16 // Recursion Available flag
-	Z      uint16 // Reserved for future use (3 bits)
-	RCODE  uint16 // Response code (4 bits)
+	QR     uint16 
+	Opcode uint16 
+	AA     uint16 
+	TC     uint16 
+	RD     uint16 
+	RA     uint16 
+	Z      uint16 
+	RCODE  uint16 
 }
 
 func EncodeDNSFlags(flags DNSFlags) uint16 {
@@ -218,7 +218,6 @@ func ParseDomainName(message []byte, offset int) (name string, length int) {
 	return name, offset - offset
 }
 
-// func EncodeDNSMessage(header DNSHeader, questions []DNSQuestion, answers []DNSRecord, additionals []DNSRecord) []byte {
 func EncodeDNSMessage(header DNSHeader, questions []DNSQuestion, answers []DNSRecord) []byte {
 	message := make([]byte, 0)
 
@@ -237,9 +236,8 @@ func EncodeDNSMessage(header DNSHeader, questions []DNSQuestion, answers []DNSRe
 		message = append(message, encodeUint16(q.QClass)...)
 	}
 
-	// // Encode answers, authorities, and additionals (similar structure)
+	// Encode answers, authorities, and additionals (similar structure)
 	message = EncodeDNSRecords(message, answers)
-	// message = encodeDNSRecords(message, additionals)
 
 	return message
 }
@@ -313,14 +311,6 @@ func Forwad(question string, resolver string) (addrs []string, err error) {
 	return r.LookupHost(context.Background(), question)
 }
 
-// func Lookup(question string, resolver string, port string) (addr string) {
-// 	addr = ""
-//     if ips, err := Forwad(question, resolver+ ":" +port)); err != nil {
-//         addr = ips[0]
-//     }  
-// 	return addr
-// }
-
 func IsIPv4(address string) bool {
 	return strings.Count(address, ":") < 2
 }
@@ -337,5 +327,3 @@ func FilterIpV4(ips []string) (ipV4s []string) {
 	}	
 	return ipV4s
 }
-
-

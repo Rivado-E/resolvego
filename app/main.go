@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 
-	lib "github.com/rivao-e/resolego/lib"
+	lib "github.com/rivado-e/resolego/lib"
 )
 
 func dnsServer() {
@@ -34,13 +34,12 @@ func dnsServer() {
 		}
 
 		message := buf[:size]
-		// log.Printf("Received %d bytes from %s:\n", size, source)
-		// dns.PrintMessage(message)
-
 		response := []byte{}
-
+			
+		// TODO: implement message compression and decompression 
+		// see this rfc ref (https://www.rfc-editor.org/rfc/rfc1035#section-4.1.4)
 		if receivedHeader, receivedQuestions, _, err := lib.ParseDNSMessage(message); err != nil {
-			log.Fatal(err)
+			log.Fatal(err) 
 		} else {
 			headerFlags := lib.DecodeDNSFlags(receivedHeader.Flags)
 			headerFlags.QR = 1
@@ -50,9 +49,7 @@ func dnsServer() {
 			headerFlags.Z = 0
 			headerFlags.RCODE = 4
 
-			// receivedHeader.QDCount = 1
 			receivedHeader.ANCount = receivedHeader.QDCount
-			// receivedHeader.ID = 1234
 			receivedHeader.Flags = lib.EncodeDNSFlags(headerFlags)
 			answers := []lib.DNSRecord{}
 
@@ -60,20 +57,12 @@ func dnsServer() {
 
 				receivedQuestions[i].QType = 1
 				receivedQuestions[i].QClass = 1
-				// TODO: check if the argument exists first
 
 				for _, arg := range os.Args {
 					log.Println("Command line args", arg)
 				}
 
-				ips, err := lib.Forwad(question.QName, os.Args[2])
-
-				// if err != nil {
-				//
-				// 	log.Println("Error trying to forward the request: ", err)
-				// 	log.Fatal("Error here is the question: ", question.QName)
-				//
-				// }
+				ips, _ := lib.Forwad(question.QName, os.Args[2])
 
 				for _, ip := range ips {
 					log.Println(ip)
@@ -81,11 +70,6 @@ func dnsServer() {
 				log.Println("Logged it before filtering")
 
 				ips = lib.FilterIpV4(ips)
-
-				for _, ip := range ips {
-					log.Println(ip)
-				}
-				// log.Fatal("Logged it after filtering")
 
 				data := []byte{}
 				if len(ips) != 0 {
@@ -98,19 +82,16 @@ func dnsServer() {
 
 				record := lib.DNSRecord{
 					Name:     question.QName,
-					Type:     receivedQuestions[i].QType, // A record
-					Class:    receivedQuestions[i].QType, // IN
+					Type:     receivedQuestions[i].QType,
+					Class:    receivedQuestions[i].QType,
 					TTL:      60,
 					RDLength: uint16(len(data)),
-					// RData:    []byte{8, 8, 8, 8}, // 192.0.2.1
-					RData: data, // 192.0.2.1
+					RData: data,
 				}
 				answers = append(answers, record)
 			}
 
-			// log.Fatal(len(answers))
 			response = lib.EncodeDNSMessage(receivedHeader, receivedQuestions, answers)
-			// dns.PrintMessage(response)
 		}
 
 		_, err = udpConn.WriteToUDP(response, source)

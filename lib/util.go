@@ -123,10 +123,7 @@ func IPAddressStringToBytes(ipStr string) ([]byte, error) {
 	return ip, nil
 }
 
-// ParseDNSMessage parses a DNS message byte slice into structured DNS components
-// func ParseDNSMessage(message []byte) (header DNSHeader, questions []DNSQuestion, answers []DNSRecord, authorities []DNSRecord, additionals []DNSRecord, err error) {
 func ParseDNSMessage(message []byte) (header DNSHeader, questions []DNSQuestion, answers []DNSRecord, err error) {
-	// Parse DNS header
 	header.ID = binary.BigEndian.Uint16(message[0:2])
 	header.Flags = binary.BigEndian.Uint16(message[2:4])
 	header.QDCount = binary.BigEndian.Uint16(message[4:6])
@@ -154,11 +151,7 @@ func ParseDNSMessage(message []byte) (header DNSHeader, questions []DNSQuestion,
 
 		questions = append(questions, question)
 	}
-	// log.Println("So far so good")
-	// Parse answers, authorities, and additionals (similar structure)
-	answers, offset = ParseDNSRecords(message, offset, int(header.ANCount))
-	// authorities, offset = parseDNSRecords(message, offset, int(header.NSCount))
-	// additionals, offset = parseDNSRecords(message, offset, int(header.ARCount))
+	answers, _ = ParseDNSRecords(message, offset, int(header.ANCount))
 
 	return header, questions, answers, nil
 }

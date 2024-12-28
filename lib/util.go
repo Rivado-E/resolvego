@@ -197,7 +197,7 @@ func ParseDomainName(message []byte, offset int) (name string, length int) {
 		length := int(message[offset])
 		log.Println(message[offset:])
 		if length == 0 {
-			offset++
+			// offset++
 			break
 		}
 
@@ -215,7 +215,7 @@ func ParseDomainName(message []byte, offset int) (name string, length int) {
 		name += part
 	}
 
-	return name, offset - offset
+	return name, 0
 }
 
 func EncodeDNSMessage(header DNSHeader, questions []DNSQuestion, answers []DNSRecord) []byte {

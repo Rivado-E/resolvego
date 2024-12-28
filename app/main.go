@@ -34,7 +34,7 @@ func dnsServer() {
 		}
 
 		message := buf[:size]
-		response := []byte{}
+		var response []byte
 			
 		// TODO: implement message compression and decompression 
 		// see this rfc ref (https://www.rfc-editor.org/rfc/rfc1035#section-4.1.4)

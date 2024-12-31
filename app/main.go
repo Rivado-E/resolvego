@@ -35,11 +35,13 @@ func dnsServer() {
 
 		message := buf[:size]
 		var response []byte
-			
-		// TODO: implement message compression and decompression 
+
+		lib.PrintMessage(message)
+
+		// TODO: implement message compression and decompression
 		// see this rfc ref (https://www.rfc-editor.org/rfc/rfc1035#section-4.1.4)
 		if receivedHeader, receivedQuestions, _, err := lib.ParseDNSMessage(message); err != nil {
-			log.Fatal(err) 
+			log.Fatal(err)
 		} else {
 			headerFlags := lib.DecodeDNSFlags(receivedHeader.Flags)
 			headerFlags.QR = 1
@@ -86,7 +88,7 @@ func dnsServer() {
 					Class:    receivedQuestions[i].QType,
 					TTL:      60,
 					RDLength: uint16(len(data)),
-					RData: data,
+					RData:    data,
 				}
 				answers = append(answers, record)
 			}
@@ -94,6 +96,7 @@ func dnsServer() {
 			response = lib.EncodeDNSMessage(receivedHeader, receivedQuestions, answers)
 		}
 
+		lib.PrintMessage(response)
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			log.Println("Failed to send response: ", err)
@@ -104,4 +107,3 @@ func dnsServer() {
 func main() {
 	dnsServer()
 }
-
